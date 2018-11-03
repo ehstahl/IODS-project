@@ -2,3 +2,18 @@
 # About the project
 
 *Write a short description about the course and add a link to your github repository here. This is an R markdown (.Rmd) file so you can use R markdown syntax. See the 'Useful links' page in the mooc area (chapter 1) for instructions.*
+
+title: "About the course"
+author: "Erik Stahl"
+output: html_document
+    theme: cosmo
+    toc: true
+    toc_depth: 2
+    fig_caption: true
+    fig_width: 6
+    fig_height: 4
+    code_folding: hide
+
+The Introduction to Open Data Science introduces students to the ever-expanding world of data and open data sets. With an emphasis on open-source regarding the software and the data, the research is conducted transparently and thus reproducible by anyone, anywhere. Below is a link to my Github repository for the course work.
+
+<https://github.com/ehstahl/IODS-project>
