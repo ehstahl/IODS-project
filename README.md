@@ -1,6 +1,4 @@
 ---
-title: "About a course"
-author: "Erik Stahl"
 output: github_document
 ---
 
