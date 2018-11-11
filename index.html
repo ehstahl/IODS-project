@@ -145,8 +145,9 @@ $(document).ready(function () {
 
 <div id="TOC">
 <ul>
-<li><a href="#about-the-project">About the project</a></li>
-<li><a href="#insert-chapter-2-title-here">Insert chapter 2 title here</a></li>
+<li><a href="#about-the-project">About the project</a><ul>
+<li><a href="#week-2-regression-analysis">#Week 2: Regression analysis</a></li>
+</ul></li>
 </ul>
 </div>
 
@@ -155,16 +156,27 @@ $(document).ready(function () {
 <h1>About the project</h1>
 <p>The Introduction to Open Data Science introduces students to the ever-expanding world of data and open data sets. With an emphasis on open-source regarding the software and the data, the research is conducted transparently and thus reproducible by anyone, anywhere. <a href="https://github.com/ehstahl/IODS-project">Here</a> is a link to my Github repository for the course work.</p>
 <hr />
-</div>
-<div id="insert-chapter-2-title-here" class="section level1">
-<h1>Insert chapter 2 title here</h1>
-<p><em>Describe the work you have done this week and summarize your learning.</em></p>
-<ul>
-<li>Describe your work and results clearly.</li>
-<li>Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods</li>
-<li>Assume the reader has no previous knowledge of your data or the more advanced methods you are using</li>
-</ul>
+<div id="week-2-regression-analysis" class="section level2">
+<h2>#Week 2: Regression analysis</h2>
+<p><code>s14 &lt;- read.table(   &quot;http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/learning2014.txt&quot;,   sep=&quot;,&quot;,   header=TRUE) dim(s14) str(s14)</code></p>
+<p>Reads in the table from the assigned address. The dimensions function shows that the table has 166 observations and 7 variables. The structure function shows that the table has variables such as gender, age, attitude and points. The variables deep, stra and surf relate to questions regarding thinking on a deep, a strategic and a surface level. The structure also shows what kind of data type is used in each variable.</p>
+<p><code> plot(s14)</code></p>
+<p>This basic plotting function renders a scatterplot overview of all the variables in the table and how the observations land on them. On the upside this gives an overview, but at the same time it’s hard to draw any conclusions from this. This can perhaps mainly be used to get hints at what to have a closer look at.</p>
+<p><code> plot(s14$gender) plot(s14$age) plot(s14$attitude) plot(s14$deep) plot(s14$stra) plot(s14$surf) plot(s14$points)</code></p>
+<p>The separate plots show how the observations (166 individuals) are distributed across each variable. The first one (gender) shows that there are about half as many men in this table as there are women. The second one shows a scatterplot, which illustrates that over 2/3 of the individuals are younger than 30 years. The last one shows that well over half of the participants scored over 20 points.</p>
+<pre><code>plot(s14$deep, s14$points)
+plot(s14$stra, s14$points)
+plot(s14$surf, s14$points)
+plot(s14$age, s14$attitude)</code></pre>
+<p>Comparing the ways the participants have disclosed they think, the deep thinking correlates somewhat with good academic performance (points). For strategic and surface thinking, it’s not as easy to notice a similar trend. Regarding age and attitude, no grumpy youngster-trend can be read from this material. The attitude among the youngest participants (and all ages for that matter) is evenly distributed.</p>
+<pre class=""><code>malli &lt;- lm(points ~ attitude + age + stra, data = s14)
+summary(malli)</code></pre>
+<p>Above we have rendered a regression model with the variable points as the dependent variable (y-axis in a plot) and the variables attitude, age and stra (strategic thinking) as explanatory variables (x-axis in a plot). The function summary returns a summary of this model.</p>
+<p>The variables age and stra have weaker statistical significance, while attitude has the clearly strongest significance. Combined, the explanatory variables however draw a p-value far below 0.05. It should however be noted that both the age and the stra variable have p-values larger than 0.05, so this raises some serious questions if we dare accept the hypothesis of the model (that there is a relation between the dependent and the explanatories) in this case. To be absolutely sure, I would prefer having explanatory variables which all provide p-values below 0.05 to confidently reject the null hypothesis for the whole model, that is confirm that a relation exists between the points variable and these three variables combined.</p>
+<p>The residual standard error is 5.26. That means that this is the average difference between the y-value (points) of the regression line of the model and the actual observed y-value of a given observation. In other words the regression line is on average off by over 5 points. On a scale of max 33 points, that is quite a lot. Moving on to the multiple R-squared result, that doesn’t give much reason for joy either. The given figure is 0.2182, rounded to a percentage: 22 percent. This means that just under 22 percent of variation in amount of points can be explained by the explanatory variables in our model (attitude, age and strategic thinking).</p>
+<p><strong>Didn’t have time to do the fifth part with the diagnostic plots</strong></p>
 <hr />
+</div>
 </div>
 
 
