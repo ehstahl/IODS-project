@@ -1,0 +1,83 @@
+Week 3: Logistic regression
+
+Start off by importing the dataframe.
+
+```{r}
+
+joined <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/alc.txt",
+                     sep = ",",
+                     header = TRUE)
+
+dim(joined)
+colnames(joined)
+```
+
+This data set includes 382 observations, in this case students, and spans 35 variables, all of which you can see in the output above.
+The topic of the data is student achievement in secondary education of two Portuguese schools.
+The data was collected by using school reports and questionnaires.
+Originally the set consists of two sets, one on performance in mathematics and one in Portuguese language.
+In this set (joined) these two sets have been joined together.
+Most of the variables provides background about the student. The variables G1, G2 and G3 give the average math and Portuguese grade in the first, second period and the final grade respectively.
+Two new variables have also been created in the joined dataset. One (alc_use) gives an average alcohol consumption for a student, and the other column (high_use) returns "TRUE" if this figure is above 2.
+
+To analyze the possible high alcohol use, I take a "marginalized youth" approach.
+The variables I use are absences, free time, failures and age.
+For the first three my hypothesis is that the higher the absences and failures, the higher the alcohol use could be. "Too much" free time could also be a contributing factor.
+For age I don't have an equally clear cut assumption. Perhaps the use among younger (15-year-olds) could be higher than among the older students (22-year-olds).
+
+```{r}
+boxplot(joined$alc_use ~ joined$age, ylab="Alcohol use", xlab="Age")
+boxplot(joined$alc_use ~ joined$failures, ylab="Alcohol use", xlab="Past class failures")
+boxplot(joined$alc_use ~ joined$freetime, ylab="Alcohol use", xlab="Free time after school")
+boxplot(joined$alc_use ~ joined$absences, ylab="Alcohol use", xlab="School absences")
+````
+
+As the box plots show, all of my hypotheses were wrong. No obvious trends are visible to support them.
+For age, the distribution resembles a nice bell curve, but the increase in the middle age range is quite modest.
+Past class failures doesn't either serve as a good indicator for higher alcohol use.
+The free time after school actually shows a positive correlation with alcohol use, but that too is quite moderate.
+With absences there are some individuals with quite high alcohol use around the middle range (13 absences), but on the whole there is no apparent trend.
+
+```{r}
+cor(joined[c(34,3,17,25,30)])
+```
+
+The correlation table backs up the box plots, showing no remarkable correlation figures between alcohol use and the used variables.
+
+Moving on to the logistic regression, we create a generalized linear model.
+
+```{r}
+malli <- glm(high_use~age+failures+freetime+absences, data = joined, binomial())
+
+summary.glm(malli)
+```
+
+Presenting the summary for this relationship, shows a stronger relationship than in the example above.
+This can primarily be explained by the bar in a way being "lowered". When the target variable changed to "high_use", the explanatory variables now have a different task: their role in explaining a student's alcohol use being above 2.
+A glance at the summary shows that now for this task, both the freetime and absences variables are highly statistically significant. Which means we have solid reason to assume these variables do have an impact on the target variable in this case.
+The significance for failures is a bit weaker but still quite okay, but the age variable is not one to trust in this case. Therefore, we dump that variable and continue without it.
+
+```{r}
+malli <- glm(high_use~failures+freetime+absences, data = joined, binomial())
+
+summary.glm(malli)
+```
+
+The summary lists the explanatory variables and how they relate to the target variable, or more accurately to the high use of alcohol being true.
+In the leftmost column under "Estimate", the figures show how much the log odds is estimated to increase if this specific variable (for example failures) would be increased by one unit.
+So if freetime was increased by one unit, it is estimated that the log odds of high alcohol use being true would increase by 0.359.
+Next we calculate the odds ratios for the coefficients and confidence intervals for them.
+
+```{r}
+exp(cbind(OR = coef(malli), confint(malli)))
+```
+
+
+Now the variables impact are a bit easier to interpret. Take for example the failures variable.
+If that variable is increased by one unit, the odds of high alcohol use being true (versus it being false, of course) is estimated to increase by a factor of 1.46.
+Almost the same is true for freetime, which will cause an increase by a factor of 1.43 if itself increased by one unit.
+Absence has a bit lower impact, causes an increase in the odds by a factor of 1.07.
+All three predictions of the variables fall well within a 95% confidence interval, so the predictions are quite trustworthy.
+With regard to my own hypotheses, I definitely was dead wrong about the impact of the variables failures and absences and definitely underestimated the freetime variable.
+
+Didn't have time to finish exercies 6 and onwards.
