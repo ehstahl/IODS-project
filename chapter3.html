@@ -124,8 +124,9 @@ $(document).ready(function () {
 </div>
 
 
-<p>Week 3: Logistic regression</p>
-<p>Start off by importing the dataframe.</p>
+<div id="week-3-logistic-regression" class="section level2">
+<h2>#Week 3: Logistic regression</h2>
+<p>Start off by importing the dataframe and examining it.</p>
 <pre class="r"><code>joined &lt;- read.table(&quot;http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/alc.txt&quot;,
                      sep = &quot;,&quot;,
                      header = TRUE)
@@ -227,7 +228,8 @@ summary.glm(malli)</code></pre>
 ## freetime    1.43290098 1.12949959 1.8323653
 ## absences    1.07128798 1.03702729 1.1115624</code></pre>
 <p>Now the variables impact are a bit easier to interpret. Take for example the failures variable. If that variable is increased by one unit, the odds of high alcohol use being true (versus it being false, of course) is estimated to increase by a factor of 1.46. Almost the same is true for freetime, which will cause an increase by a factor of 1.43 if itself increased by one unit. Absence has a bit lower impact, causes an increase in the odds by a factor of 1.07. All three predictions of the variables fall well within a 95% confidence interval, so the predictions are quite trustworthy. With regard to my own hypotheses, I definitely was dead wrong about the impact of the variables failures and absences and definitely underestimated the freetime variable.</p>
-<p>Didn’t have time to finish exercies 6 and onwards.</p>
+<p><strong>Didn’t have time to finish exercies 6 and onwards.</strong></p>
+</div>
 
 
 

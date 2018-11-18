@@ -1,6 +1,7 @@
-Week 3: Logistic regression
+#Week 3: Logistic regression
+---
 
-Start off by importing the dataframe.
+Start off by importing the dataframe and examining it.
 
 ```{r}
 
@@ -80,4 +81,4 @@ Absence has a bit lower impact, causes an increase in the odds by a factor of 1.
 All three predictions of the variables fall well within a 95% confidence interval, so the predictions are quite trustworthy.
 With regard to my own hypotheses, I definitely was dead wrong about the impact of the variables failures and absences and definitely underestimated the freetime variable.
 
-Didn't have time to finish exercies 6 and onwards.
+**Didn't have time to finish exercies 6 and onwards.**
