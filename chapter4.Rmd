@@ -1,0 +1,15 @@
+#Week 4: Clustering and classification
+---
+
+´´´{r}
+library(MASS)
+data("Boston")
+class(Boston)
+dim(Boston)
+
+´´´
+
+Import the package MASS and the Boston data, which is a dataframe.
+The Boston data has 506 observations and 14 columns. INSERT DATA TYPES!!
+
+The Boston data comprises housing values in suburbs of Boston. That is, the observations are specific houses and their value based on 14 different variables, such as crime rate or pollution in the area.
