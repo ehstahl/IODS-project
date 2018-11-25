@@ -1,15 +1,135 @@
 #Week 4: Clustering and classification
 ---
 
-´´´{r}
+Import the package MASS and the Boston data.
+
+```{r}
 library(MASS)
 data("Boston")
 class(Boston)
+str(Boston)
 dim(Boston)
+```
 
-´´´
+The Boston data is a dataframe, that has 506 observations and 14 columns.
 
-Import the package MASS and the Boston data, which is a dataframe.
-The Boston data has 506 observations and 14 columns. INSERT DATA TYPES!!
+The Boston data comprises of housing values in suburbs of Boston. That is, the observations are specific suburb areas and this data estimates that areas housing value based on 14 different variables, such as crime rate or pollution in the area.
 
-The Boston data comprises housing values in suburbs of Boston. That is, the observations are specific houses and their value based on 14 different variables, such as crime rate or pollution in the area.
+All 14 variables are numeric, except "chas" and "rad" that are integers. "Chas" is just an indicator, returning a 1 if the area is connected to the Charles river and 0 if it's not.
+"Rad" is an index for accessibility to radial highways. Runs from 1 through 24, as seen in the summaries.
+The rest of the variables are numeric and have widely ranging values. They comprise of median values (medv), pupil-teacher ratios (ptratio), average number of rooms per house (rm) etc. The summary of the variables illustrates this below.
+
+```{r}
+summary(Boston)
+pairs(Boston)
+```
+
+A huge table like this (14x14) is seldom useful for proper analysis, but some clear enough connections can be interpreted from this table.
+
+Something that already jumps out in the summary of the variables is the distribution within the crime variable. The rate is quite moderate up until after the 3rd quartile where it spikes. So there are a few areas with a massively higher crime rate than the others. This can make for an interesting analysis object. And as we see in the table, for example a high rate of crime only occurs in areas with high pupils to student ratios.
+
+Another peculiar combination is zoning (zn) and property-tax rate (tax). The zoning variable shows how large a proportion of residential land in the area is zoned for lots over 25 000 sq feet (about 2326 sq meters, could fit a very large one-family house) and the other variable gives the property tax rate in the area. Some areas with no large lots have sky high tax rates, but the rest of the observations all lie roughly within a coherent tax range (200-400). Raises suspicions that the zoning variable can identify wealthy areas (large houses on large lots) and that they have the same tax rate as poorer residents in other areas (that is, relatively much cheaper rates for the rich ones). Of course, large lots could also mean very large houses in the form of high rises and such. So my suspicion would need to be cross-checked with other variables, such as median value of homes (medv).
+
+The distribution of the black variable is interesting, with a few observations below the first quartile being nearly completely all-white. But already at the first quartile the proportion is quite large of the total population, so I doubt there is a larger trend to be drawn from these largely non-black areas. Would of course be interesting to single out the few and have a closer look at them in general.
+
+Moving on to scaling the data.
+
+```{r}
+b_scaled <- scale(Boston)
+
+b_scaled <- as.data.frame(b_scaled)
+
+summary(b_scaled)
+```
+
+The Boston data has now been standardized, subtracting the means from respective columns and dividing the result by the standard deviation. As the summary shows the mean in each variable is now 0 and the figures for the quartiles etc. have changed as well. All variables are now standardized and scaled to make comparing the different variables with each other easier. Next up: creating a categorical variable of the scaled crime rate.
+
+```{r}
+crimcat <- quantile(b_scaled$crim)
+
+crime <- cut(b_scaled$crim, breaks = crimcat, include.lowest = TRUE, label = c("Low","Med_low","Med_high","High"))
+
+b_scaled <- dplyr::select(b_scaled, -crim)
+
+b_scaled <- data.frame(b_scaled, crime)
+```
+
+The old numeric crime variable has now been dropped from the dataset (second last line of code) and a new categorical crime variable has been lifted in. It is divided into four categories (Low to High) by quantiles. Next: splitting the set into training and test data.
+
+```{r}
+n <- nrow(b_scaled)
+
+chosen <- sample(n, size=(n*0.8))
+
+train <- b_scaled[chosen,]
+test <- b_scaled[-chosen,]
+```
+
+Now the dataset is divided into two, with 80% of the data sitting in the 'train' set. Next we fit the 'train' set to a linear discriminant analysis model, using the categorical crime variable as target variable and all the others as predictor variables.
+
+```{r}
+lda.fit <- lda(crime ~ ., data = train)
+plot(lda.fit, dimen = 2)
+```
+
+Next we grab the crime categories from the test set and then remove the categorical crime variable from the test dataset.
+
+```{r}
+c_classes <- test$crime
+
+test <- dplyr::select(test,-crime)
+```
+
+Then we predict the classes with our LDA model on the test data.
+
+```{r}
+lda.pred <- predict(lda.fit, newdata = test)
+```
+
+And cross tabulate the results with the crime categories from the test set.
+
+```{r}
+tab = table(correct = c_classes, predicted = lda.pred$class)
+addmargins(tab)
+```
+
+As we can see from the row and column sums, the model seems to predict fairly well. In the lower categories the prediction is slightly off, but the models seems to be able to predict the 'high' category quite well.
+
+Next up: reload the Boston dataset, scale it and calculate the distances between the observations.
+
+```{r}
+library(MASS)
+data(Boston)
+b_scaled <- scale(Boston)
+b_scaled <- as.data.frame(b_scaled)
+dist_eu <- dist(b_scaled)
+
+summary(dist_eu)
+```
+
+Above, a summary of the euclidean distances between the observations. Next: the k-means algorithm to find the optimal number of clusters.
+
+```{r}
+library(MASS)
+library(ggplot2)
+
+set.seed(123)
+
+k_max <- 10
+
+twcss <- sapply(1:k_max, function(k){kmeans(b_scaled, k)$tot.withinss})
+
+qplot(x = 1:k_max, y = twcss, geom = 'line')
+```
+
+Above the total within cluster sum of squares (twcss) illustrates what the optimal number of clusters by indicating the sharpest drop in the slope by that number. As seen in the graph, here it's 2. Next we run the k-means algorithm and visualize the clusters by using the optimal number.
+
+```{r}
+km <-kmeans(b_scaled, centers = 2)
+
+pairs(b_scaled, col = km$cluster)
+```
+
+Now the visualization of the data concentrate the results into two clusters. By the looks of it, it seems to be helpful and have more benefits than setbacks. No apparent cases of the clusters gravely overstepping each others boundaries are visible, which is a good sign.
+
+*Didn't have time for the bonus tasks.*
