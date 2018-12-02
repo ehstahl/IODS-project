@@ -1,0 +1,118 @@
+#Week 5: Dimensionality reduction techniques
+---
+
+```{r}
+library(dplyr)
+library(GGally)
+library(ggplot2)
+library(corrplot)
+```
+
+I have done my own wrangling, but to ensure compatibility and readability I import the external set.
+
+```{r}
+human <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/human2.txt",
+  sep=",",
+  header=TRUE)
+```
+
+Next a graphical overview of the dataset and summaries of the variables.
+
+```{r}
+vis <- ggpairs(human[,])
+vis
+
+cor(human) %>% corrplot()
+
+summary(human)
+```
+
+The summary reveals some horrificly large differences between countries. For example the maternal mortality rate (deaths per 100 000 live births) differs from 1 to 1100. And the figures are already alarmingly high at the mean and the 3rd quartile. The life expectancy shows that people in the countries that are best off get roughly 25-30 years longer lives than in the countries worst off.
+
+In the colourful correlation plot we can see the relationships between the variables. Quite expected relations here, to be frank.
+
+Maternal mortality and life expectancy have a quite strong negative correlation (larger red ball), ergo the higher the maternal mortality the lower the life expectancy in said country.
+
+A positive correlation for maternal mortality is on the other hand adolescent births. That is, the occurrence of maternal mortality and teenage pregnancies tend to go hand in hand.
+
+On a more positive note, a positive correlation between expected years of schooling and life expectancy is found in the plot. On the other hand, this doesn't by any means show any causality. One could imagine that a person has more time to study simply because the person lives longer.
+
+Something that shows a bit more promise for education are the pairs between expected education and maternal mortality and adolescent births. These pairs both correlate negatively. So there are clues of the societal and public health benefits of education, but again correlation doesn't equal causation.
+
+Next: perform a principal component analysis (PCA) on the dataset.
+
+```{r}
+pca_human <- prcomp(human)
+
+summary(pca_human)
+
+biplot(pca_human, choices = 1:2, cex=c(0.5,1), col=c("grey40","green"))
+```
+
+As noted with regard to the distribution within the variables earlier, the differences are quite large between different countries. Therefore, when handling a holistic and global comparison like this one, the variability is all over the place. This is seen both in the summary above, where the figures are astronomical and in the biplot which doesn't help at all in explaining this data. Analytically PCA might also assume that variables with larger variance are more important than dito with smaller variance, so therefore a PCA with unscaled data will probably be a poor one.
+
+The uselessness of this particular unscaled PCA is actually confirmed in the plot above. In the biplots one should be able to analyze the correlation between the features in the data by looking at the angles between the arrows in the plot. In the plot above several arrows are not even drawn because of "indeterminate angles" (check the error messages before the plot). So in conclusion, this analysis with unscaled data is a failure.
+
+Because of these problems, we next standardize the data so that all observations become comparable with each other.
+
+```{r}
+human_std <- scale(human)
+
+pca_human2 <- prcomp(human_std)
+
+s <- summary(pca_human2)
+s
+
+pca_pr <- round(1*s$importance[2, ], digits = 3)
+pca_pr <- (pca_pr*100)
+pca_pr
+
+pca_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+
+biplot(pca_human2, choices = 1:2, cex=c(0.5,1), col=c("grey40","green"), xlab = pca_lab[1], ylab = pca_lab[2])
+```
+
+I write my descriptions of the results here instead of in captions in the plot. Too much to say, wouldn't fit in a caption.
+
+Now we have much clearer results than in the previous plot, and we can see clear groupings of correlations basically possible to divide into three groups: 1. Wealth and quality of life, 2. Female empowerment and 3. Reproductive issues.
+
+When reading a biplot, the smaller the angle between specific arrows are the larger the correlation between their corresponding variables are. So in group 1, we see that wealth (GNI), life expectancy, expected education and education among females all correlate quite well with each other. In group 2, countries with a larger share of female members of parliament also tend to have a larger female participation rate in the work force. And in group 3, as stated earlier, here again it is shown that maternal mortality and adolescent births often go hand in hand. Naturally, with these three groups having large angles between each other, they do not correlate that much with each other.
+
+Moving on to the arrows and their relations to the PC1- and PC2-axis. Group 1 is negatively correlated with PC1 and mostly not correlated at all with PC2. Group 2 is positively correlated with PC2 and mostly not correlated at all with PC1. And group 3 is positively correlated with PC1 but mostly not correlated at all with PC2.
+
+Something worth mentioning that doesn't speak in favor of this analysis is its lack of variability coverage. The PC1 and PC2 together cover less than 70 percent of the variability (visible both in the axis and in the summary above: "cumulative proportion"). That means less than 70 percent of the variability in the data here can be explained with this analysis. Might be though that that is a fairly okay coverage, considering the massive variation in the data and multitude of outliers.
+
+Moving on to MCA and the tea dataset. First we load the dataset and explore the structure and dimensions.
+
+```{r}
+library(FactoMineR)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+
+tea <- read.table("http://factominer.free.fr/course/donnees/data_MCA_Tea.csv",
+                  sep=";",
+                  header=TRUE)
+dim(tea)
+str(tea)
+
+keep_columns <- c("Sport", "slimming", "relaxing", "healthy", "sugar", "effect.on.health")
+
+tea_time <- select(tea, one_of(keep_columns))
+
+gather(tea_time) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+```
+
+The tea dataset is a questionnaire with 36 questions regarding tea consumption. 300 individuals have participated in the questionnaire. The dimensions are way too big to visualize neatly and understandibly in one plot. Above instead a smaller sample.
+
+Next we move on to MCA. We'll utilize the same columns as plotted above.
+
+```{r}
+mca <- MCA(tea_time, graph = FALSE)
+summary(mca)
+plot(mca, invisible=c("ind"), habillage="quali")
+```
+
+In the summary the squared correlation for the categorical variables are not even close to 1, so there's no bond worth mentioning between the variables and the dimensions.
+
+In the biplot some interesting similarities between variables is are shown. Somewhat peculiar for example that no sugar and not sportsman are close to each other, and the opposites sportsman and sugar also are close together. Also weird that no effect on health and healthy can be that close to each other.
